@@ -9,7 +9,7 @@ setup(name='appbundler',
       author='Michael Bayer',
       author_email='mab4058@gmail.com',
       url='https://github.com/mab4058/appbundler',
-      download_url='https://github.com/mab4058/appbundler/appbundler/archive/{}.tar.gz'.format(version),
+      download_url='https://github.com/mab4058/appbundler/archive/{}.tar.gz'.format(version),
       license='MIT',
       install_requires=['toml>=0.10.0,<1.0.0'],
       extras_require={
