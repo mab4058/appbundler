@@ -100,11 +100,21 @@ class AppBundler:
         else:
             self.build_directory = Path(build_directory).joinpath('build').resolve()
 
+    @log_entrance_exit
+    def run(self):
+        """Runs all steps of the bundling process."""
+
         try:
             self.build_directory.mkdir(parents=True)
         except FileExistsError:
-            shutil.rmtree(self.build_directory)
-            self.build_directory.mkdir(parents=True)
+            logger.warning('Directory already exists: %s', self.build_directory)
+            decision = input(f'{self.build_directory} already exists. Overwrite? Y/[N]: ')
+            if decision.strip().upper() == 'Y':
+                logger.info('Deleting old build directory: %s', self.build_directory)
+                shutil.rmtree(self.build_directory)
+                self.build_directory.mkdir(parents=True)
+            else:
+                return
 
         self._install_dependencies()
         self._cleanup_files()
