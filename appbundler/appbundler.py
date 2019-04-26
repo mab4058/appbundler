@@ -126,18 +126,21 @@ class AppBundler:
         requirements_file = self.app_directory.joinpath('requirements.txt')
         setup_file = self.app_directory.joinpath('setup.py')
 
+        package_copy_required = False
         if requirements_file.exists():
             cmd = [sys.executable, '-m', 'pip', 'install', '-r', str(requirements_file), '-t',
                    str(self.build_directory)]
-            logger.debug('Running subprocess cmds: %s', cmd)
-            _ = subprocess.run(cmd, check=True)
-            shutil.copytree(self.package_name, self.build_directory)
+            package_copy_required = True
         elif setup_file.exists():
             cmd = [sys.executable, '-m', 'pip', 'install', str(setup_file.parent), '-t', str(self.build_directory)]
-            logger.debug('Running subprocess cmds: %s', cmd)
-            _ = subprocess.run(cmd, check=True)
         else:
             raise ValueError('Could not locate requirements.txt or setup.py.')
+
+        logger.debug('Running subprocess cmds: %s', cmd)
+        _ = subprocess.run(cmd, check=True)
+
+        if package_copy_required:
+            shutil.copytree(self.package_name, self.build_directory)
 
     @log_entrance_exit
     def _cleanup_files(self):
