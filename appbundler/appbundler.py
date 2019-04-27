@@ -144,8 +144,7 @@ class AppBundler:
     """
 
     def __init__(
-            self, app_directory, package_name, supplemental_data=None,
-            build_directory=None
+        self, app_directory, package_name, supplemental_data=None, build_directory=None
     ):
         self.app_directory = Path(app_directory).resolve()
         self.package_name = package_name
