@@ -83,17 +83,20 @@ class AppBundler:
     All path must be absolute or relative to app_directory.
 
     Args:
-        app_directory (str, pathlib.Path): Root app directory. This is typically the directory containing
-            the appbundler.toml file.
+        app_directory (str, pathlib.Path): Root app directory. This is typically the
+            directory containing the appbundler.toml file.
         package_name (str): Python package name. Must exist in the app_directory.
-        supplemental_data (list of str, list of pathlib.Path): Optional list of paths to supplemental data. The files
-            or directories defined here will be included in the root level of the zip file.
-        build_directory (str, pathlib.Path): Opitonal build directory override. Default is in the app_directory.
+        supplemental_data (list of str, list of pathlib.Path): Optional list of paths
+            to supplemental data. The files or directories defined here will be
+            included in the root level of the zip file.
+        build_directory (str, pathlib.Path): Opitonal build directory override. Default
+            is in the app_directory.
 
     """
 
     def __init__(
-        self, app_directory, package_name, supplemental_data=None, build_directory=None
+            self, app_directory, package_name, supplemental_data=None,
+            build_directory=None
     ):
         self.app_directory = Path(app_directory).resolve()
         self.package_name = package_name
