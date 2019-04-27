@@ -115,6 +115,7 @@ class AppBundler:
 
         self._install_dependencies()
         self._cleanup_files()
+        self._zip_files()
 
     @log_entrance_exit
     def _install_dependencies(self):
