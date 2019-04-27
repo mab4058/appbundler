@@ -152,3 +152,13 @@ class AppBundler:
             for f in files_to_delete:
                 logger.info('Deleting: %s', f)
                 f.unlink()
+
+    @log_entrance_exit
+    def _zip_files(self):
+        """Zips files in root build_directory."""
+
+        zip_file = Path(self.build_directory.parent).joinpath(self.package_name + '.zip')
+        logger.info('Creating zip file: %s', zip_file)
+
+        shutil.make_archive(zip_file.with_suffix(''), 'zip', self.build_directory)
+        shutil.move(str(zip_file), self.build_directory)
