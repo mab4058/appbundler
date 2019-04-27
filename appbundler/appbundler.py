@@ -54,16 +54,12 @@ class Config:
     def _parse_and_verify(data):
         """
         Parses the paths and verifies their existence.
-
         Args:
             data (dict): Dictionary containing paths as values.
-
         Returns:
             dict: Dictionary with the same keys, but Path instances as values.
-
         Raises:
             ValueError: If path does not exist.
-
         """
 
         new = {}
@@ -76,6 +72,58 @@ class Config:
         return new
 
 
+class SupplementalData:
+    """
+    Handles finding files based on a glob pattern.
+
+    Directory structure will be preserved unless an override is provided.
+    In the case of an override all files will be moved to the specified
+    override directory.
+
+    Args:
+        directory (str, pathlib.Path): Base data directory to be included in
+            build.
+        sub_directories (list of str): Optional sub-directory path(s) in
+            'directory'. This can be used to limit what is copied.
+        pattern (str): Optional glob filtering.
+
+    Attributes:
+        directory (pathlib.Path): Base data directory to be included in build.
+        sub_directories (list of str): sub-directory path(s) in 'directory' if
+            any were specified.
+        locations_to_copy (list of pathlib.Path): List of all directories/files
+            to be copied.
+
+    """
+
+    def __init__(self, directory, sub_directories=None, pattern=None):
+        self.directory = Path(directory)
+        self.sub_directories = sub_directories
+        self.pattern = pattern
+        self.locations_to_copy = []
+
+        locations = []
+        if self.sub_directories is None:
+            locations.append(self.directory)
+        else:
+            for sub in self.sub_directories:
+                sub = sub.lstrip('/\\')
+                current = self.directory.joinpath(sub)
+                if not current.exists():
+                    logger.error('Directory does not exist: %s', current)
+                    raise ValueError(f'Directory does not exist: {current}')
+                self.locations_to_copy.append(current)
+
+        if self.pattern is None:
+            [logger.info('Will copy: %s', x) for x in locations]
+            self.locations_to_copy = locations
+        else:
+            for location in locations:
+                files = list(location.glob(self.pattern))
+                [logger.info('Will copy: %s', x) for x in files]
+                self.locations_to_copy.extend(files)
+
+
 class AppBundler:
     """
     Handles bundling all dependencies and supplemental data into a nice zip file.
@@ -83,14 +131,15 @@ class AppBundler:
     All path must be absolute or relative to app_directory.
 
     Args:
-        app_directory (str, pathlib.Path): Root app directory. This is typically the
-            directory containing the appbundler.toml file.
-        package_name (str): Python package name. Must exist in the app_directory.
-        supplemental_data (list of str, list of pathlib.Path): Optional list of paths
-            to supplemental data. The files or directories defined here will be
-            included in the root level of the zip file.
-        build_directory (str, pathlib.Path): Opitonal build directory override. Default
-            is in the app_directory.
+        app_directory (str, pathlib.Path): Root app directory. This is
+            typically the directory containing the appbundler.toml file.
+        package_name (str): Python package name. Must exist in the
+            app_directory.
+        supplemental_data (list of SupplementalData): Optional list of
+            SupplementalData instances. The files or directories defined in
+                these instances will be included in the zip file.
+        build_directory (str, pathlib.Path): Optional build directory override.
+            Default is in the app_directory.
 
     """
 
@@ -130,6 +179,7 @@ class AppBundler:
                 return
 
         self._install_dependencies()
+        self._handle_supplemental_data()
         self._cleanup_files()
         self._zip_files()
 
@@ -189,6 +239,27 @@ class AppBundler:
             for f in files_to_delete:
                 logger.info('Deleting: %s', f)
                 f.unlink()
+
+    @log_entrance_exit
+    def _handle_supplemental_data(self):
+        """Moves any supplemental data into build directory before zip."""
+
+        for data in self.supplemental_data:
+            src_base = str(data.directory)
+            dst_base = str(self.build_directory.joinpath(data.directory.stem))
+            for src in data.locations_to_copy:
+                if src.is_dir():
+                    for dir_path, dir_names, file_names in os.walk(str(src)):
+                        dst_dir = Path(dir_path.replace(src_base, dst_base))
+                        if not dst_dir.exists():
+                            dst_dir.mkdir(parents=True)
+                        for file in file_names:
+                            shutil.copy2(os.path.join(dir_path, file), str(dst_dir))
+                else:
+                    dst_dir = Path(str(src.parent).replace(src_base, dst_base))
+                    if not dst_dir.exists():
+                        dst_dir.mkdir(parents=True)
+                    shutil.copy2(str(src), str(dst_dir))
 
     @log_entrance_exit
     def _zip_files(self):
