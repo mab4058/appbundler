@@ -83,17 +83,14 @@ class AppBundler:
     All path must be absolute or relative to app_directory.
     """
 
-    def __init__(self, app_directory, package_name=None, supplemental_data=None, build_directory=None):
+    def __init__(self, app_directory, package_name, supplemental_data=None, build_directory=None):
         self.app_directory = Path(app_directory).resolve()
         self.package_name = package_name
         self.supplemental_data = supplemental_data
         self.build_directory = build_directory
 
         # Compute paths.
-        if package_name is None:
-            self.package = None
-        else:
-            self.package = self.app_directory.joinpath(package_name).resolve()
+        self.package_dir = self.app_directory.joinpath(package_name).resolve()
 
         if build_directory is None:
             self.build_directory = self.app_directory.joinpath('build')
