@@ -81,9 +81,20 @@ class AppBundler:
     Handles bundling all dependencies and supplemental data into a nice zip file.
 
     All path must be absolute or relative to app_directory.
+
+    Args:
+        app_directory (str, pathlib.Path): Root app directory. This is typically the directory containing
+            the appbundler.toml file.
+        package_name (str): Python package name. Must exist in the app_directory.
+        supplemental_data (list of str, list of pathlib.Path): Optional list of paths to supplemental data. The files
+            or directories defined here will be included in the root level of the zip file.
+        build_directory (str, pathlib.Path): Opitonal build directory override. Default is in the app_directory.
+
     """
 
-    def __init__(self, app_directory, package_name, supplemental_data=None, build_directory=None):
+    def __init__(
+        self, app_directory, package_name, supplemental_data=None, build_directory=None
+    ):
         self.app_directory = Path(app_directory).resolve()
         self.package_name = package_name
         self.supplemental_data = supplemental_data
@@ -98,14 +109,16 @@ class AppBundler:
             self.build_directory = Path(build_directory).joinpath('build').resolve()
 
     @log_entrance_exit
-    def run(self):
+    def bundle(self):
         """Runs all steps of the bundling process."""
 
         try:
             self.build_directory.mkdir(parents=True)
         except FileExistsError:
             logger.warning('Directory already exists: %s', self.build_directory)
-            decision = input(f'{self.build_directory} already exists. Overwrite? Y/[N]: ')
+            decision = input(
+                f'{self.build_directory} already exists. Overwrite? Y/[N]: '
+            )
             if decision.strip().upper() == 'Y':
                 logger.info('Deleting old build directory: %s', self.build_directory)
                 shutil.rmtree(self.build_directory)
@@ -126,11 +139,27 @@ class AppBundler:
 
         package_copy_required = False
         if requirements_file.exists():
-            cmd = [sys.executable, '-m', 'pip', 'install', '-r', str(requirements_file), '-t',
-                   str(self.build_directory)]
+            cmd = [
+                sys.executable,
+                '-m',
+                'pip',
+                'install',
+                '-r',
+                str(requirements_file),
+                '-t',
+                str(self.build_directory),
+            ]
             package_copy_required = True
         elif setup_file.exists():
-            cmd = [sys.executable, '-m', 'pip', 'install', str(setup_file.parent), '-t', str(self.build_directory)]
+            cmd = [
+                sys.executable,
+                '-m',
+                'pip',
+                'install',
+                str(setup_file.parent),
+                '-t',
+                str(self.build_directory),
+            ]
         else:
             raise ValueError('Could not locate requirements.txt or setup.py.')
 
@@ -145,8 +174,12 @@ class AppBundler:
         """Removes __pycache__ and .pyc files resulting from installation."""
 
         for root, dirs, files in os.walk(self.build_directory):
-            dirs_to_delete = [Path(root).joinpath(x) for x in dirs if x == '__pycache__']
-            files_to_delete = [Path(root).joinpath(x) for x in files if Path(x).suffix == '.pyc']
+            dirs_to_delete = [
+                Path(root).joinpath(x) for x in dirs if x == '__pycache__'
+            ]
+            files_to_delete = [
+                Path(root).joinpath(x) for x in files if Path(x).suffix == '.pyc'
+            ]
             for d in dirs_to_delete:
                 logger.info('Deleting: %s', d)
                 shutil.rmtree(d)
@@ -158,7 +191,9 @@ class AppBundler:
     def _zip_files(self):
         """Zips files in root build_directory."""
 
-        zip_file = Path(self.build_directory.parent).joinpath(self.package_name + '.zip')
+        zip_file = Path(self.build_directory.parent).joinpath(
+            self.package_name + '.zip'
+        )
         logger.info('Creating zip file: %s', zip_file)
 
         shutil.make_archive(zip_file.with_suffix(''), 'zip', self.build_directory)
