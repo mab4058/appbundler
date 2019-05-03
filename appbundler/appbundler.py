@@ -1,4 +1,3 @@
-import functools
 import logging
 import os
 import shutil
@@ -8,68 +7,34 @@ from pathlib import Path
 
 import toml
 
+from appbundler.utils import cd, log_entrance_exit
+
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler(stream=sys.stdout))
-logger.setLevel(logging.DEBUG)
-
-
-def log_entrance_exit(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        logger.info('Entering %s.', func.__name__)
-        results = func(*args, **kwargs)
-        logger.info('Exiting %s.', func.__name__)
-        return results
-
-    return wrapper
-
-
-class cd:
-    """Context manager for temporary cd."""
-
-    def __init__(self, destiation):
-        self.original_dir = os.getcwd()
-        self.new_dir = destiation
-
-    def __enter__(self):
-        os.chdir(self.new_dir)
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        os.chdir(self.original_dir)
 
 
 class Config:
     def __init__(self, config_file):
-        self.config = toml.load(config_file)
+        self._config = toml.load(config_file)
+
+        # Parse all supplemental data locations.
+        self._data = []
+        for k, v in self._config.get('data', {}).items():
+            root = v['root']
+            sub_dir = v.get('sub_directory')
+            pattern = v.get('pattern')
+            self._data.append(SupplementalData(
+                root,
+                sub_directories=sub_dir,
+                pattern=pattern)
+            )
 
     @property
     def package(self):
-        return self.config['package']
+        return self._config['package']
 
     @property
     def data(self):
-        return self._parse_and_verify(self.config['data'])
-
-    @staticmethod
-    def _parse_and_verify(data):
-        """
-        Parses the paths and verifies their existence.
-        Args:
-            data (dict): Dictionary containing paths as values.
-        Returns:
-            dict: Dictionary with the same keys, but Path instances as values.
-        Raises:
-            ValueError: If path does not exist.
-        """
-
-        new = {}
-        for k, v in data.items():
-            path = Path(v)
-            if not path.exists():
-                raise ValueError('Path does not exist: %s', v)
-            else:
-                new[k] = path.resolve()
-        return new
+        return self._data
 
 
 class SupplementalData:
@@ -181,11 +146,12 @@ class AppBundler:
             else:
                 return
 
-        self._install_dependencies()
-        self._handle_supplemental_data()
-        self._cleanup_files()
-        if self.make_zip:
-            self._zip_files()
+        with cd(self.app_directory):
+            self._install_dependencies()
+            self._handle_supplemental_data()
+            self._cleanup_files()
+            if self.make_zip:
+                self._zip_files()
 
     @log_entrance_exit
     def _install_dependencies(self):
