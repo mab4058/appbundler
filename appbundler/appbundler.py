@@ -22,10 +22,8 @@ class Config:
             root = v['root']
             sub_dir = v.get('sub_directory')
             pattern = v.get('pattern')
-            self._data.append(SupplementalData(
-                root,
-                sub_directories=sub_dir,
-                pattern=pattern)
+            self._data.append(
+                SupplementalData(root, sub_directories=sub_dir, pattern=pattern)
             )
 
     @property
@@ -111,8 +109,12 @@ class AppBundler:
     """
 
     def __init__(
-            self, app_directory, package_name, supplemental_data=None,
-            build_directory=None, make_zip=True
+        self,
+        app_directory,
+        package_name,
+        supplemental_data=None,
+        build_directory=None,
+        make_zip=True,
     ):
         self.app_directory = Path(app_directory).resolve()
         self.package_name = package_name
