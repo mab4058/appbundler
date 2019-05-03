@@ -140,16 +140,20 @@ class AppBundler:
                 these instances will be included in the zip file.
         build_directory (str, pathlib.Path): Optional build directory override.
             Default is in the app_directory.
+        make_zip (bool): Create a zip file of the build contents. Optional and
+            defaults to True.
 
     """
 
     def __init__(
-        self, app_directory, package_name, supplemental_data=None, build_directory=None
+            self, app_directory, package_name, supplemental_data=None,
+            build_directory=None, make_zip=True
     ):
         self.app_directory = Path(app_directory).resolve()
         self.package_name = package_name
         self.supplemental_data = supplemental_data
         self.build_directory = build_directory
+        self.make_zip = make_zip
 
         # Compute paths.
         self.package_dir = self.app_directory.joinpath(package_name).resolve()
@@ -180,7 +184,8 @@ class AppBundler:
         self._install_dependencies()
         self._handle_supplemental_data()
         self._cleanup_files()
-        self._zip_files()
+        if self.make_zip:
+            self._zip_files()
 
     @log_entrance_exit
     def _install_dependencies(self):
