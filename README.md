@@ -33,7 +33,7 @@ be copied.  All paths are preserved from the `root` dir.
 ```toml
 # Example appbundler configuration file.
 
-title = "Appbundler onfiguration example."
+title = "Appbundler configuration example."
 
 [package]
 name="myPackage"
