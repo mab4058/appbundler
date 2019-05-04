@@ -33,19 +33,15 @@ be copied.  All paths are preserved from the `root` dir.
 ```toml
 # Example appbundler configuration file.
 
-title = "Appbundler configuration example."
-
-[package]
-name="myPackage"
-path="./myPackage"
+package="myPackage"
 
 [data]
 
-[data.values]
-root="/user/value_data"
+  [data.values]
+  root="/user/value_data"
 
-[data.accounts]
-root="/user/account_data"
-sub_directory="/public"
-pattern="*.csv"
+  [data.accounts]
+  root="/user/account_data"
+  sub_directory="/public"
+  pattern="*.csv"
 ```
