@@ -19,3 +19,33 @@ After installation you will be able to run:
 Alternatively,
 
 `python -m appbundler -h`
+
+# appbundler.toml
+
+The `appbundler.toml` contains app information such as the package/library 
+being installed, any additional 'supplemental' data to be brought into the 
+build.
+
+In this example the whole directory `"/user/value_data"` will be copied to
+the build and any `.csv` file in `"/user/account_data/public"` will also
+be copied.  All paths are preserved from the `root` dir.
+
+```toml
+# Example appbundler configuration file.
+
+title = "Appbundler onfiguration example."
+
+[package]
+name="myPackage"
+path="./myPackage"
+
+[data]
+
+[data.values]
+root="/user/value_data"
+
+[data.accounts]
+root="/user/account_data"
+sub_directory="/public"
+pattern="*.csv"
+```
