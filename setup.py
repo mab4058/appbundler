@@ -9,11 +9,13 @@ setup(name='appbundler',
       author='Michael Bayer',
       author_email='mab4058@gmail.com',
       url='https://github.com/mab4058/appbundler',
-      download_url='https://github.com/mab4058/appbundler/archive/{}.tar.gz'.format(version),
       license='MIT',
       install_requires=['toml>=0.10.0,<1.0.0'],
       extras_require={
           'tests': ['pytest>=3.5.0,<4.0.0'],
+      },
+      entry_points={
+          'console_scripts': ['appbundler = appbundler.__main__:main']
       },
       python_requires='>=3.6',
       classifiers=[
