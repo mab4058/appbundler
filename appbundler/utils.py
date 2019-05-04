@@ -27,14 +27,17 @@ def check_path(p):
 class cd:
     """Context manager for temporary cd."""
 
-    def __init__(self, destiation):
+    def __init__(self, destination):
         self.original_dir = os.getcwd()
-        self.new_dir = destiation
+        self.new_dir = destination
+        logger.debug('Recording origin directory: %s', self.original_dir)
 
     def __enter__(self):
+        logger.debug('Changing to directory: %s', self.new_dir)
         os.chdir(self.new_dir)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        logger.debug('Returning to origin: %s', self.original_dir)
         os.chdir(self.original_dir)
 
 
