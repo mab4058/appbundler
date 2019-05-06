@@ -31,8 +31,8 @@ class Config:
         self._data = []
         with cd(self._file.parent):
             for k, v in self._config.get('data', {}).items():
-                root = v['root']
-                sub_dir = v.get('sub_directory')
+                root = Path(v['root']).resolve()
+                sub_dir = v.get('sub_directories')
                 pattern = v.get('pattern')
                 self._data.append(
                     SupplementalData(root, sub_directories=sub_dir, pattern=pattern)
