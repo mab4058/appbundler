@@ -61,6 +61,8 @@ class SupplementalData:
         sub_directories (list of str): Optional sub-directory path(s) in
             'directory'. This can be used to limit what is copied.
         pattern (str): Optional glob filtering.
+        recursive (bool): Optionally use recursive search for pattern.
+            Defaults to False.
 
     Attributes:
         directory (pathlib.Path): Base data directory to be included in build.
@@ -71,11 +73,11 @@ class SupplementalData:
 
     """
 
-    def __init__(self, directory, sub_directories=None, pattern=None):
+    def __init__(self, directory, sub_directories=None, pattern=None, recursive=False):
         self.directory = Path(directory)
         self.sub_directories = sub_directories
         self.pattern = pattern
-        self.locations_to_copy = []
+        self.recursive = recursive
 
         locations = []
         if self.sub_directories is None:
@@ -87,20 +89,54 @@ class SupplementalData:
                 if not current.exists():
                     logger.error('Directory does not exist: %s', current)
                     raise ValueError(f'Directory does not exist: {current}')
-                self.locations_to_copy.append(current)
+                locations.append(current)
 
         if self.pattern is None:
             [logger.info('Will copy: %s', x) for x in locations]
-            self.locations_to_copy = locations
+            self._locations_to_copy = locations
         else:
             tmp_locations = []
             for location in locations:
                 logger.info(
                     'Will copy "%s" files from: %s', self.pattern, location
                 )
-                files = location.glob(self.pattern)
+                if self.recursive:
+                    files = location.rglob(self.pattern)
+                else:
+                    files = location.glob(self.pattern)
                 tmp_locations.append(files)
-            self.locations_to_copy = itertools.chain(*tmp_locations)
+            self._locations_to_copy = itertools.chain(*tmp_locations)
+
+    @property
+    def locations_to_copy(self):
+        new, old = itertools.tee(self._locations_to_copy, 2)
+        self._locations_to_copy = old
+        return new
+
+    def copy(self, destination):
+        """
+        Handles copying data to the build location.
+
+        Args:
+            destination (str, pathlib.Path): Destination directory.
+
+        """
+
+        src_base = str(self.directory)
+        dst_base = str(destination.joinpath(self.directory.stem))
+        for src in self.locations_to_copy:
+            if src.is_dir():
+                for dir_path, dir_names, file_names in os.walk(str(src)):
+                    dst_dir = Path(dir_path.replace(src_base, dst_base))
+                    if not dst_dir.exists():
+                        dst_dir.mkdir(parents=True)
+                    for file in file_names:
+                        shutil.copy2(os.path.join(dir_path, file), str(dst_dir))
+            else:
+                dst_dir = Path(str(src.parent).replace(src_base, dst_base))
+                if not dst_dir.exists():
+                    dst_dir.mkdir(parents=True)
+                shutil.copy2(str(src), str(dst_dir))
 
 
 class AppBundler:
@@ -234,22 +270,7 @@ class AppBundler:
     def _handle_supplemental_data(self):
         """Moves any supplemental data into build directory before zip."""
 
-        for data in self.supplemental_data:
-            src_base = str(data.directory)
-            dst_base = str(self.build_directory.joinpath(data.directory.stem))
-            for src in data.locations_to_copy:
-                if src.is_dir():
-                    for dir_path, dir_names, file_names in os.walk(str(src)):
-                        dst_dir = Path(dir_path.replace(src_base, dst_base))
-                        if not dst_dir.exists():
-                            dst_dir.mkdir(parents=True)
-                        for file in file_names:
-                            shutil.copy2(os.path.join(dir_path, file), str(dst_dir))
-                else:
-                    dst_dir = Path(str(src.parent).replace(src_base, dst_base))
-                    if not dst_dir.exists():
-                        dst_dir.mkdir(parents=True)
-                    shutil.copy2(str(src), str(dst_dir))
+        [data.copy(self.build_directory) for data in self.supplemental_data]
 
     @log_entrance_exit
     def _zip_files(self):
