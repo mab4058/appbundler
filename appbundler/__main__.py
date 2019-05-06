@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from appbundler.appbundler import AppBundler, Config
-from appbundler.utils import check_path
+from appbundler.utils import check_path, cd
 
 logger = logging.getLogger()
 
@@ -16,7 +16,7 @@ def main():
     parser.add_argument(
         'config',
         help='Full path to an appBuilder config file. This '
-        'must be located in the app\'s root directory.',
+             'must be located in the app\'s root directory.',
     )
     parser.add_argument(
         '--dir', required=False, type=str, help='Override the default built directory.'
@@ -50,23 +50,25 @@ def main():
         logger.setLevel(log_levels[args.v])
         logger.info('Adding stdout logging handler.')
 
-    # Parse toml config file.
-    config = Config(args.config)
-
     app_path = Path(args.config)
     check_path(app_path)
 
-    if args.dir is not None:
-        check_path(args.dir)
+    # Make everything relative to the config file.
+    with cd(app_path.parent):
+        # Parse toml config file.
+        config = Config(args.config)
 
-    bundler = AppBundler(
-        app_path.parent,
-        config.package,
-        supplemental_data=config.data,
-        build_directory=args.dir,
-        make_zip=args.zip,
-    )
-    bundler.bundle()
+        if args.dir is not None:
+            check_path(args.dir)
+
+        bundler = AppBundler(
+            app_path.parent,
+            config.package,
+            supplemental_data=config.data,
+            build_directory=args.dir,
+            make_zip=args.zip,
+        )
+        bundler.bundle()
 
 
 if __name__ == '__main__':
