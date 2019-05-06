@@ -192,7 +192,9 @@ class AppBundler:
         _ = subprocess.run(cmd, check=True)
 
         if package_copy_required:
-            shutil.copytree(self.package_dir, self.build_directory)
+            shutil.copytree(
+                self.package_dir, self.build_directory.joinpath(self.package_name)
+            )
 
     @log_entrance_exit
     def _cleanup_files(self):
