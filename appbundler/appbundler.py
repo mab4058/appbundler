@@ -1,3 +1,4 @@
+import itertools
 import logging
 import os
 import shutil
@@ -81,10 +82,14 @@ class SupplementalData:
             [logger.info('Will copy: %s', x) for x in locations]
             self.locations_to_copy = locations
         else:
+            tmp_locations = []
             for location in locations:
-                files = list(location.glob(self.pattern))
-                [logger.info('Will copy: %s', x) for x in files]
-                self.locations_to_copy.extend(files)
+                logger.info(
+                    'Will copy "%s" files from: %s', self.pattern, location
+                )
+                files = location.glob(self.pattern)
+                tmp_locations.append(files)
+            self.locations_to_copy = itertools.chain(*tmp_locations)
 
 
 class AppBundler:
