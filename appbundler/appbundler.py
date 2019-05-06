@@ -14,18 +14,29 @@ logger = logging.getLogger(__name__)
 
 
 class Config:
+    """
+    Loads the appbundler.toml file and handles some initial setup.
+
+    All relative paths are relative to the appbuilder.toml file.
+
+    Args:
+        config_file (str, pathlib.Path): Path to the appbuilder.toml config file.
+    """
+
     def __init__(self, config_file):
+        self._file = Path(config_file)
         self._config = toml.load(config_file)
 
         # Parse all supplemental data locations.
         self._data = []
-        for k, v in self._config.get('data', {}).items():
-            root = v['root']
-            sub_dir = v.get('sub_directory')
-            pattern = v.get('pattern')
-            self._data.append(
-                SupplementalData(root, sub_directories=sub_dir, pattern=pattern)
-            )
+        with cd(self._file.parent):
+            for k, v in self._config.get('data', {}).items():
+                root = v['root']
+                sub_dir = v.get('sub_directory')
+                pattern = v.get('pattern')
+                self._data.append(
+                    SupplementalData(root, sub_directories=sub_dir, pattern=pattern)
+                )
 
     @property
     def package(self):

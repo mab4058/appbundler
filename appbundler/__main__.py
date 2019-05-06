@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from appbundler.appbundler import AppBundler, Config
-from appbundler.utils import check_path, cd
+from appbundler.utils import check_path
 
 logger = logging.getLogger()
 
@@ -54,21 +54,21 @@ def main():
     check_path(app_path)
 
     # Make everything relative to the config file.
-    with cd(app_path.parent):
-        # Parse toml config file.
-        config = Config(args.config)
 
-        if args.dir is not None:
-            check_path(args.dir)
+    # Parse toml config file.
+    config = Config(args.config)
 
-        bundler = AppBundler(
-            app_path.parent,
-            config.package,
-            supplemental_data=config.data,
-            build_directory=args.dir,
-            make_zip=args.zip,
-        )
-        bundler.bundle()
+    if args.dir is not None:
+        check_path(args.dir)
+
+    bundler = AppBundler(
+        app_path.parent,
+        config.package,
+        supplemental_data=config.data,
+        build_directory=args.dir,
+        make_zip=args.zip,
+    )
+    bundler.bundle()
 
 
 if __name__ == '__main__':
