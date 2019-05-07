@@ -1,0 +1,14 @@
+# Example appbundler configuration file.
+
+title = "Appbundler onfiguration example."
+
+package="myapp"
+
+[data]
+
+  [data.values]
+  root="./data"
+  sub_directories=["/sub"]
+  pattern="*.json"
+  recursive=true
+  flatten=true
