@@ -15,7 +15,7 @@ def main():
     parser = argparse.ArgumentParser(description='Bundle an app.')
     parser.add_argument(
         'config',
-        help='Full path to an appBuilder config file. This '
+        help='Full path to an appbundler config file. This '
              'must be located in the app\'s root directory.',
     )
     parser.add_argument(
