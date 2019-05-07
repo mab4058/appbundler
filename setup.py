@@ -6,10 +6,11 @@ CURRENT_DIR = Path(__file__).parent
 
 
 def get_version():
-    with open('appbundler/__version__.py') as fp:
+    version_file = CURRENT_DIR / 'appbundler/__version__.py'
+    with open(version_file) as fp:
         tmp = {}
         exec(fp.read(), tmp)
-        return tmp['__version__']
+    return tmp['__version__']
 
 
 setup(name='appbundler',
