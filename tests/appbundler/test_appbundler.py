@@ -1,7 +1,7 @@
 import tempfile
 from pathlib import Path
 
-from appbundler.appbundler import Config, SupplementalData
+from appbundler.appbundler import AppBundler, Config, SupplementalData
 
 
 def test_config(app_path):
@@ -67,3 +67,31 @@ def test_supplemental_data(app_path):
                                 flatten=True)
         data.copy(temp_dir)
         assert Path(temp_dir).joinpath(Path(test_files['sub2']).name).exists()
+
+
+def test_appbundler(app_path):
+    data_path = app_path / 'data'
+    data = SupplementalData(data_path, pattern='*.json', recursive=True)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        build_dir = Path(temp_dir) / 'build'
+        expected_zip = build_dir / 'myapp.zip'
+        expected_files = {
+            'test': build_dir / 'data/test.json',
+            'test2': build_dir / 'data/test2.json',
+            'sub': build_dir / 'data/sub/sub.json',
+            'sub2': build_dir / 'data/sub/sub2.yaml',
+        }
+        bundler = AppBundler(
+            app_path,
+            'myapp',
+            supplemental_data=[data],
+            build_directory=temp_dir,
+            make_zip=True
+        )
+        bundler.bundle()
+        assert expected_zip.exists()
+        assert expected_files['test'].exists()
+        assert expected_files['test2'].exists()
+        assert expected_files['sub'].exists()
+        assert not expected_files['sub2'].exists()
