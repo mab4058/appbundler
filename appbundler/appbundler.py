@@ -34,8 +34,16 @@ class Config:
                 root = Path(v['root']).resolve()
                 sub_dir = v.get('sub_directories')
                 pattern = v.get('pattern')
+                recursive = v.get('recursive')
+                flatten = v.get('flatten')
                 self._data.append(
-                    SupplementalData(root, sub_directories=sub_dir, pattern=pattern)
+                    SupplementalData(
+                        root,
+                        sub_directories=sub_dir,
+                        pattern=pattern,
+                        recursive=recursive,
+                        flatten=flatten,
+                    )
                 )
 
     @property
@@ -63,6 +71,8 @@ class SupplementalData:
         pattern (str): Optional glob filtering.
         recursive (bool): Optionally use recursive search for pattern.
             Defaults to False.
+        flatten (bool): Optionally ignore file structure and copy files
+            to the root data directory. Defaults to False.
 
     Attributes:
         directory (pathlib.Path): Base data directory to be included in build.
@@ -73,11 +83,19 @@ class SupplementalData:
 
     """
 
-    def __init__(self, directory, sub_directories=None, pattern=None, recursive=False):
+    def __init__(
+        self,
+        directory,
+        sub_directories=None,
+        pattern=None,
+        recursive=False,
+        flatten=False,
+    ):
         self.directory = Path(directory)
         self.sub_directories = sub_directories
         self.pattern = pattern
         self.recursive = recursive
+        self.flatten = flatten
 
         locations = []
         if self.sub_directories is None:
@@ -97,9 +115,7 @@ class SupplementalData:
         else:
             tmp_locations = []
             for location in locations:
-                logger.info(
-                    'Will copy "%s" files from: %s', self.pattern, location
-                )
+                logger.info('Will copy "%s" files from: %s', self.pattern, location)
                 if self.recursive:
                     files = location.rglob(self.pattern)
                 else:
@@ -123,17 +139,27 @@ class SupplementalData:
         """
 
         src_base = str(self.directory)
-        dst_base = str(destination.joinpath(self.directory.stem))
+        if self.flatten:
+            dst_base = Path(destination)
+        else:
+            dst_base = Path(destination.joinpath(self.directory.stem))
+
         for src in self.locations_to_copy:
             if src.is_dir():
                 for dir_path, dir_names, file_names in os.walk(str(src)):
-                    dst_dir = Path(dir_path.replace(src_base, dst_base))
+                    if self.flatten:
+                        dst_dir = dst_base
+                    else:
+                        dst_dir = Path(dir_path.replace(src_base, str(dst_base)))
                     if not dst_dir.exists():
                         dst_dir.mkdir(parents=True)
                     for file in file_names:
                         shutil.copy2(os.path.join(dir_path, file), str(dst_dir))
             else:
-                dst_dir = Path(str(src.parent).replace(src_base, dst_base))
+                if self.flatten:
+                    dst_dir = dst_base
+                else:
+                    dst_dir = Path(str(src.parent).replace(src_base, str(dst_base)))
                 if not dst_dir.exists():
                     dst_dir.mkdir(parents=True)
                 shutil.copy2(str(src), str(dst_dir))
