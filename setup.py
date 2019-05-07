@@ -2,7 +2,6 @@ import ast
 import re
 from pathlib import Path
 
-from setuptools import find_packages
 from setuptools import setup
 
 CURRENT_DIR = Path(__file__).parent
@@ -53,4 +52,4 @@ setup(name='appbundler',
           'Topic :: Software Development :: Libraries',
           'Topic :: Software Development :: Libraries :: Python Modules'
       ],
-      packages=find_packages())
+      packages=['appbundler'])
