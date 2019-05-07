@@ -1,5 +1,3 @@
-import ast
-import re
 from pathlib import Path
 
 from setuptools import setup
@@ -8,27 +6,15 @@ CURRENT_DIR = Path(__file__).parent
 
 
 def get_version():
-    """
-    Gets the version from __init__.
-
-    Credit:
-        This function was adapted from python/black on Github.
-
-    Returns:
-        str: Version string.
-
-    """
-    init_file = CURRENT_DIR.joinpath('appbundler/__init__.py')
-    _version_re = re.compile(r"__version__\s+=\s+(?P<version>.*)")
-    with open(init_file, "r", encoding="utf8") as f:
-        match = _version_re.search(f.read())
-        version = match.group("version") if match is not None else '"unknown"'
-    return str(ast.literal_eval(version))
+    with open('appbundler/__version__.py') as fp:
+        tmp = {}
+        exec(fp.read(), tmp)
+        return tmp['__version__']
 
 
 setup(name='appbundler',
       version=get_version(),
-      description='Bundle an app, dependencies, and any other files into a neat zip file.',
+      description='Bundle an app, dependencies, and any other files into a zip file.',
       author='Michael Bayer',
       author_email='mab4058@gmail.com',
       url='https://github.com/mab4058/appbundler',
