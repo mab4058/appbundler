@@ -17,8 +17,7 @@ class Config:
     """
     Loads the appbundler.toml file and handles some initial setup.
 
-    All relative paths are relative to the
-    appbundler.toml file.
+    All relative paths are relative to the appbundler.toml file.
 
     Args:
         config_file (str, pathlib.Path): Path to the appbuilder.toml config file.
