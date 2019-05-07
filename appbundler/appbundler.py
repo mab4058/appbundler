@@ -137,10 +137,10 @@ class SupplementalData:
             destination (str, pathlib.Path): Destination directory.
 
         """
-
+        destination = Path(destination)
         src_base = str(self.directory)
         if self.flatten:
-            dst_base = Path(destination)
+            dst_base = destination
         else:
             dst_base = Path(destination.joinpath(self.directory.stem))
 
