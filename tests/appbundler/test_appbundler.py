@@ -76,6 +76,7 @@ def test_appbundler(app_path):
     with tempfile.TemporaryDirectory() as temp_dir:
         build_dir = Path(temp_dir) / 'build'
         expected_zip = build_dir / 'myapp.zip'
+        expected_dep = build_dir / 'toml'
         expected_files = {
             'test': build_dir / 'data/test.json',
             'test2': build_dir / 'data/test2.json',
@@ -91,6 +92,7 @@ def test_appbundler(app_path):
         )
         bundler.bundle()
         assert expected_zip.exists()
+        assert expected_dep.exists()
         assert expected_files['test'].exists()
         assert expected_files['test2'].exists()
         assert expected_files['sub'].exists()
