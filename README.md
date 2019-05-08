@@ -1,5 +1,6 @@
 [![PyPI](https://img.shields.io/pypi/v/appbundler.svg?style=flat-square)](https://pypi.org/pypi/appbundler)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/appbundler.svg?style=flat-square)
+[![Build Status](https://travis-ci.com/mab4058/appbundler.svg?branch=master)](https://travis-ci.com/mab4058/appbundler)
 ![GitHub](https://img.shields.io/github/license/mab4058/appbundler.svg?style=flat-square)
 
 # appbundler
