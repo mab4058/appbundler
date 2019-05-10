@@ -238,7 +238,6 @@ class AppBundler:
         """Installs dependencies contained in requirements.txt or setup.py."""
 
         requirements_file = self.app_directory.joinpath('requirements.txt')
-        setup_file = self.app_directory.joinpath('setup.py')
 
         package_copy_required = False
         if requirements_file.exists():
@@ -253,21 +252,24 @@ class AppBundler:
                 str(self.build_directory),
             ]
             package_copy_required = True
-        elif setup_file.exists():
+        else:
             cmd = [
                 sys.executable,
                 '-m',
                 'pip',
                 'install',
-                str(setup_file.parent),
+                '.',
                 '-t',
                 str(self.build_directory),
             ]
-        else:
-            raise ValueError('Could not locate requirements.txt or setup.py.')
 
         logger.debug('Running subprocess cmds: %s', cmd)
-        _ = subprocess.run(cmd, check=True)
+
+        try:
+            _ = subprocess.run(cmd, check=True)
+        except Exception:
+            logger.error('Pip failed to install the app using cmd=[%s].', cmd)
+            raise
 
         if package_copy_required:
             shutil.copytree(
