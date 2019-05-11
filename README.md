@@ -7,42 +7,61 @@
 
 Zip and app, all it's dependencies, and any other data.
 
-# Installation
+## Installation
 
 `pip install appbundler`
 
-# Usage
+## Usage
 
 After installation you will be able to run:
 
-`appbundler -h`
+`appbundler /path/to/appbundler.toml`
+
+The `appbundler.toml` config file must exist in the app's root directory.
 
 Alternatively,
 
 `python -m appbundler -h`
 
-# appbundler.toml
+## appbundler.toml
 
 The `appbundler.toml` contains app information such as the package/library 
 being installed, any additional 'supplemental' data to be brought into the 
 build.
 
-In this example the whole directory `"/user/value_data"` will be copied to
-the build and any `.csv` file in `"/user/account_data/public"` will also
-be copied.  All paths are preserved from the `root` dir.
+Data examples:
+* [data.example1]
+    * The whole `root` directory will be copied to the build directory and the directory structure will be preserved.
+* [data.example2]
+    * Any csv file in the `sub_directory` of `root` will be copied to the build directory and the directory structure will be preserved.
+* [data.example3]
+    * All json files in entirety of the `root` directory will be recursively copied to the build directory.  Also, due to `flatten` all file will be copied to the root of the build directory.
 
 ```toml
 # Example appbundler configuration file.
 
-package="myPackage"
+package="myapp"
 
 [data]
 
-  [data.values]
-  root="/user/value_data"
+  [data.example1]
+  root="/user/example1"
 
-  [data.accounts]
-  root="/user/account_data"
-  sub_directory="/public"
+  [data.example2]
+  root="/user/example2"
+  sub_directory="/sub"
   pattern="*.csv"
+  
+  [data.example3]
+  root="./example3"
+  pattern="*.json"
+  recursive=true
+  flatten=true
 ```
+
+### Basic flow
+
+1. App requirements will be installed via `requirements.txt`, `setup.py`, or `pyproject.toml` files.
+2. Clean up the directories by removing `__pycache__` and `.pyc` files.  Reduce the zip file size as much as possible.
+3. Handle all supplemental data.
+4. Zip the build directory.
